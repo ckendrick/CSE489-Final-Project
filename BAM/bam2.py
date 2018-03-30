@@ -8,7 +8,15 @@ NN-Team-2
 from keras.datasets import cifar10
 from keras.utils import np_utils
 
+import numpy as np
+import matplotlib.pyplot as plt
+
 import pprint
+
+
+def rgb2gray(rgb):
+    return np.dot(rgb[...,:3], [0.299, 0.587, 0.114])
+
 
 def load_data():
     (X_train, y_train), (X_test, y_test) = cifar10.load_data()
@@ -91,22 +99,43 @@ class BAM(object):
 
 
 if __name__ == "__main__":
+
     X_train, y_train, _, _ = load_data()
-    print(X_train[0][0][0][1])
 
+    data_pairs = []
 
-    data_pairs = [
-        [[1, 0, 1, 0, 1, 0], [1, 1, 0, 0]],
-        [[1, 1, 1, 0, 0, 0], [1, 0, 1, 0]],
-        [[0, 0, 0, 1, 0, 1], [1, 1, 1, 0]]
-    ]
+    j = 3
+    for i in range(j):
+        gray = rgb2gray(X_train[i, :])
+        gray = gray.reshape(gray.shape[0] * gray.shape[0])
+
+        for k, item in enumerate(gray):
+            if gray[k] > 255/2:
+                gray[k] = 1
+            else:
+                gray[k] = 0
+        print(y_train[i])
+        data_pairs.append([np.asarray(gray.astype(int)), y_train[i]])
+
     b = BAM(data_pairs)
 
+    print('\n')
+    for i in range(j):
+        print('X_train[{},:] ---> '.format(i), b.get_assoc(data_pairs[i][0]))
+        print('       expecting: ', y_train[i])
+        print('')
 
-    pp = pprint.PrettyPrinter(indent=4)
-    print ('Matrix: ')
-    pp.pprint(b.get_bam_matrix())
-    print ('\n')
-    print ('[1, 0, 1, 0, 1, 0] ---> ', b.get_assoc([1, 0, 1, 0, 1, 0]))
-    print ('[1, 1, 1, 0, 0, 0] ---> ', b.get_assoc([1, 1, 1, 0, 0, 0]))
-    print ('[0, 0, 0, 1, 1, 1] ---> ', b.get_assoc([0, 0, 0, 1, 1, 1]))
+    print('')
+    print('untrained:')
+    print('---')
+
+    gray = rgb2gray(X_train[j, :])
+    gray = gray.reshape(gray.shape[0] * gray.shape[0])
+
+    for k, item in enumerate(gray):
+        if gray[k] > 255 / 2:
+            gray[k] = 1
+        else:
+            gray[k] = 0
+    print('X_train[{},:] ---> '.format(j), b.get_assoc(np.asarray(gray.astype(int))))
+    print('       expecting: ', y_train[j])
