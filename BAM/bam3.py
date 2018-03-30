@@ -1,34 +1,11 @@
 '''
 Working example of Bidirectional associative memory
-Using MNIST - only 3 images are able to be stored...
+Encoding objects without the images:
 
 NN-Team-2
 '''
 
-from keras.datasets import cifar10
-from keras.utils import np_utils
-
 import numpy as np
-
-
-def rgb2gray(rgb):
-    return np.dot(rgb[...,:3], [0.299, 0.587, 0.114])
-
-
-def load_data():
-    (X_train, y_train), (X_test, y_test) = cifar10.load_data()
-
-    # normalize inputs from 0-255 to 0.0-1.0
-    # X_train = X_train.astype('float32')
-    # X_test = X_test.astype('float32')
-    # X_train = X_train / 255.0
-    # X_test = X_test / 255.0
-
-    # one hot encode outputs
-    y_train = np_utils.to_categorical(y_train)
-    y_test = np_utils.to_categorical(y_test)
-
-    return X_train, y_train, X_test, y_test
 
 
 class BAM(object):
@@ -97,41 +74,58 @@ class BAM(object):
 
 if __name__ == "__main__":
 
-    X_train, y_train, _, _ = load_data()
+    #Generate some fake data:
+    # descriptors = [
+    #     ['category', [0, 0]]
+    #     ['fur', [0]],
+    #     ['body color', [0, 0]],
+    #     ['legs', [0, 0, 0]],
+    #     ['size', [0, 0, 0]],
+    #     ['fin direction', [0, 0]]
+    # ]
+
+    # generate all possible dog descriptions
+    dogs = []
+    for i in range(4):
+        for j in range(4):
+            dogs.append([
+                0, 1,                                               # category
+                1,                                                  # fur
+                1 if i >= 2 else 0, 1 if i % 2 != 0 else 0,         # body color
+                1, 0, 0,                                            # legs
+                0, 1 if j >= 2 else 0, 1 if j % 2 != 0 else 0,      # size
+                0, 0                                                # fin direction
+            ])
+
+    # generate all possible elephants
+    elephants = []
+    for i in range(2):
+        for j in range(4):
+            elephants.append([
+                0, 1,
+                0,
+                1 if i >= 2 else 0, 1 if i % 2 != 0 else 0,
+                1, 0, 0,
+                1 if j >= 2 else 0, 1 if j % 2 != 0 else 0, 0,
+                0, 0
+            ])
 
     data_pairs = []
-
-    j = 5
-    for i in range(j):
-        gray = rgb2gray(X_train[i, :])
-        gray = gray.reshape(gray.shape[0] * gray.shape[0])
-
-        for k, item in enumerate(gray):
-            if gray[k] > 255/2.5:
-                gray[k] = 1
-            else:
-                gray[k] = 0
-        data_pairs.append([np.asarray(gray.astype(int)), y_train[i]])
+    for i in range(dogs.__len__()):
+        data_pairs.append([dogs[i], [1, 0, 0, 0, 0, 0, 0, 0, 0]])
+    for i in range(elephants.__len__()):
+        data_pairs.append([elephants[i], [0, 1, 0, 0, 0, 0, 0, 0, 0]])
 
     b = BAM(data_pairs)
 
     print('\n')
-    for i in range(j):
-        print('X_train[{},:] ---> '.format(i), b.get_assoc(data_pairs[i][0]))
-        print('       expecting: ', y_train[i])
+    for i in range(dogs.__len__()):
+        print('test[{},:] ---> '.format(i), b.get_assoc(data_pairs[i][0]))
+        print('       expecting: ', [1, 0, 0, 0, 0, 0, 0, 0, 0])
         print('')
 
-    print('')
-    print('Untrained:')
-    print('')
-
-    gray = rgb2gray(X_train[j, :])
-    gray = gray.reshape(gray.shape[0] * gray.shape[0])
-
-    for k, item in enumerate(gray):
-        if gray[k] > 255 / 2:
-            gray[k] = 1
-        else:
-            gray[k] = 0
-    print('X_train[{},:] ---> '.format(j), b.get_assoc(np.asarray(gray.astype(int))))
-    print('       expecting: ', y_train[j])
+    print ('---')
+    for i in range(elephants.__len__()):
+        print('test[{},:] ---> '.format(i+dogs.__len__()), b.get_assoc(data_pairs[i+dogs.__len__()][0]))
+        print('       expecting: ', [0, 1, 0, 0, 0, 0, 0, 0, 0])
+        print('')
