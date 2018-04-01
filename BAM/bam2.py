@@ -9,10 +9,34 @@ from keras.datasets import cifar10
 from keras.utils import np_utils
 
 import numpy as np
+from matplotlib import pyplot as plt
+from scipy.misc import toimage
 
 
 def rgb2gray(rgb):
     return np.dot(rgb[...,:3], [0.299, 0.587, 0.114])
+
+
+def plot_encoding(X_train):
+    plt.figure(1)
+    ax = plt.subplot(121)
+    ax.title.set_text('grayscale')
+    gray = rgb2gray(X_train[0])
+    gray = gray.astype(int)
+    print(gray)
+    plt.imshow(toimage(np.asarray(gray)), cmap='gray')
+
+    ax = plt.subplot(122)
+    ax.title.set_text('basic encoding')
+    for x in range(gray.shape[0]):
+        for y in range(gray.shape[1]):
+            if gray[x, y] > 255 / 2.5:
+                gray[x, y] = 255
+            else:
+                gray[x, y] = 0
+    plt.imshow(toimage(np.asarray(gray)), cmap='gray')
+
+    plt.show()
 
 
 def load_data():
@@ -112,6 +136,8 @@ if __name__ == "__main__":
             else:
                 gray[k] = 0
         data_pairs.append([np.asarray(gray.astype(int)), y_train[i]])
+
+    plot_encoding(X_train)
 
     b = BAM(data_pairs)
 
