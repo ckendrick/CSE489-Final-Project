@@ -20,13 +20,5 @@ def import_cifar10(category=0, plot=False):
 
     return filter_train
 
-import_cifar10(0, True)
-import_cifar10(1, True)
-import_cifar10(2, True)
-import_cifar10(3, True)
-import_cifar10(4, True)
-import_cifar10(5, True)
-import_cifar10(6, True)
-import_cifar10(7, True)
-import_cifar10(8, True)
-import_cifar10(9, True)
+for i in range(10):
+    import_cifar10(i, True)
