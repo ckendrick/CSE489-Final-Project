@@ -12,6 +12,7 @@ from keras.layers import Dense
 from keras.layers import Dropout
 from keras.layers import Flatten
 from keras.constraints import maxnorm
+from keras.optimizers import SGD
 from keras.layers.convolutional import Conv2D
 from keras.layers.convolutional import MaxPooling2D
 from keras.utils import np_utils
@@ -69,6 +70,11 @@ def build_model(num_classes):
     model.add(Dropout(0.2))
     model.add(Dense(num_classes, activation='softmax'))
 
+    decay = lrate / epochs
+    sgd = SGD(lr=lrate, momentum=0.9, decay=decay, nesterov=False)
+    model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
+    print(model.summary())
+
     return model
 
 
@@ -89,6 +95,12 @@ def main():
         X_train, y_train, X_test, y_test = load_data()
 
         model = load(build_model(y_test.shape[1]), filename)
+
+        scores = model.evaluate(X_train, y_train, verbose=0)
+        print("Accuracy train: %.2f%%" % (scores[1] * 100))
+
+        scores = model.evaluate(X_test, y_test, verbose=0)
+        print("Accuracy test: %.2f%%" % (scores[1] * 100))
 
         # declare categories:
         categories = [

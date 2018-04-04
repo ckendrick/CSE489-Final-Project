@@ -22,9 +22,8 @@ def plot_encoding(X_train):
     ax = plt.subplot(121)
     ax.title.set_text('grayscale')
     gray = rgb2gray(X_train[0])
-    gray = gray.astype(int)
     print(gray)
-    plt.imshow(toimage(np.asarray(gray)), cmap='gray')
+    plt.imshow(toimage(np.asarray(gray.astype(int))), cmap='gray')
 
     ax = plt.subplot(122)
     ax.title.set_text('basic encoding')

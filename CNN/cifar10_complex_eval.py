@@ -73,6 +73,12 @@ print(model.summary())
 if path.exists('out/cifar10_complex_cnn.h5'):
     model.load_weights('out/cifar10_complex_cnn.h5')
 
+    scores = model.evaluate(X_train, y_train, verbose=0)
+    print("Accuracy train: %.2f%%" % (scores[1] * 100))
+
+    scores = model.evaluate(X_test, y_test, verbose=0)
+    print("Accuracy test: %.2f%%" % (scores[1] * 100))
+
     # declare categories:
     categories = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
 

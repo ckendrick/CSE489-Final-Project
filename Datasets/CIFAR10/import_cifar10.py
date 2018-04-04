@@ -5,7 +5,7 @@ from scipy.misc import toimage
 
 def import_cifar10(category=0, plot=False):
     categories = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
-    filter_train = np.load('datasets/cifar10/set_{}.npy'.format(categories[category]))
+    filter_train = np.load('dataset/x_train_{}.npy'.format(categories[category]))
 
     if(plot):
         images = filter_train[:16]
