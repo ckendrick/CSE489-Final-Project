@@ -6,7 +6,6 @@ import os
 import os.path as path
 
 import numpy
-from keras.datasets import cifar100
 from keras.models import Sequential, Model
 from keras.layers import *
 from keras.constraints import maxnorm
@@ -20,7 +19,7 @@ import matplotlib.pyplot as plt
 from scipy.misc import toimage
 
 # Compile model
-epochs = 50
+epochs = 200
 lrate = 0.01
 
 # Simply orders the dataset for 'channels (3) first'
@@ -30,65 +29,48 @@ K.set_image_dim_ordering('th')
 seed = 7
 numpy.random.seed(seed)
 
+categories = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
+
 
 def load_data(type):
 
-    if type == 'color':
-        (X_train, y_train), (X_test, y_test) = cifar100.load_data()
+    X_train = None
+    y_train = None
+    for i in range(len(categories)):
+        x_train_color = np.load('../../Datasets/CIFAR10_canny/dataset/x_train_{}_{}.npy'.format(type, categories[i]))
+        y_train_color = np.load('../../Datasets/CIFAR10_canny/dataset/y_train_generic_{}.npy'.format(categories[i]))
 
-        # normalize inputs from 0-255 to 0.0-1.0
-        X_train = X_train.astype('float32')
-        X_test = X_test.astype('float32')
-        X_train = X_train / 255.0
-        X_test = X_test / 255.0
+        if (X_train is None):
+            X_train = x_train_color
+            y_train = y_train_color
+        else:
+            X_train = np.append(X_train, x_train_color, axis=0)
+            y_train = np.append(y_train, y_train_color, axis=0)
 
-        # one hot encode outputs
-        y_train = np_utils.to_categorical(y_train)
-        y_test = np_utils.to_categorical(y_test)
+    X_test = None
+    y_test = None
+    for i in range(len(categories)):
+        X_test_color = np.load('../../Datasets/CIFAR10_canny/dataset/x_test_{}_{}.npy'.format(type, categories[i]))
+        y_test_color = np.load('../../Datasets/CIFAR10_canny/dataset/y_test_generic_{}.npy'.format(categories[i]))
 
-        return X_train, y_train, X_test, y_test
+        if (X_test is None):
+            X_test = X_test_color
+            y_test = y_test_color
+        else:
+            X_test = np.append(X_test, X_test_color, axis=0)
+            y_test = np.append(y_test, y_test_color, axis=0)
 
-    elif type == 'canny':
-        (X_train, y_train), (X_test, y_test) = cifar100.load_data()
+    print(X_train.shape)
+    print(X_test.shape)
+    print(y_train.shape)
+    print(y_test.shape)
 
-        # normalize inputs from 0-255 to 0.0-1.0
-        X_train = X_train.astype('float32')
-        X_test = X_test.astype('float32')
-        X_train = X_train / 255.0
-        X_test = X_test / 255.0
-
-        # one hot encode outputs
-        y_train = np_utils.to_categorical(y_train)
-        y_test = np_utils.to_categorical(y_test)
-
-        return X_train, y_train, X_test, y_test
-
-    else:
-        print('--- type not recognized')
-        return None, None, None, None
-
-
-def import_cifar10(category=0, plot=False):
-    categories = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
-    filter_train = np.load('../../Datasets/CIFAR10/dataset/x_train_{}.npy'.format(categories[category]))
-
-    if(plot):
-        images = filter_train[:16]
-        # create a grid of 3x3 images
-        plt.figure(figsize=(10, 10))
-        for i in range(images.shape[0]):
-            plt.subplot(4, 4, i + 1)
-            plt.imshow(toimage(images[i]))
-            plt.axis('off')
-        plt.tight_layout()
-        plt.show()
-
-    return filter_train
+    return X_train, y_train, X_test, y_test
 
 
-def complex_cnn(num_classes):
+def complex_cnn(num_classes, channels):
     model = Sequential()
-    model.add(Conv2D(32, (3, 3), input_shape=(3, 32, 32), activation='relu', padding='same'))
+    model.add(Conv2D(32, (3, 3), input_shape=(channels, 32, 32), activation='relu', padding='same'))
     model.add(Dropout(0.2))
     model.add(Conv2D(32, (3, 3), activation='relu', padding='same'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -161,8 +143,8 @@ def main():
     X_train_canny, y_train_canny, X_test_canny, y_test_canny = load_data('canny')
 
     # Build two models, one for color image and one for canny-edge
-    model_color = complex_cnn(y_test_color.shape[1])
-    model_canny = complex_cnn(y_test_canny.shape[1])
+    model_color = complex_cnn(y_test_color.shape[1], 3)
+    model_canny = complex_cnn(y_test_canny.shape[1], 1)
     model_merge = Add()([model_color.output, model_canny.output])
     model_merge = Dense(y_test_color.shape[1], activation='softmax')(model_merge)
     model_final = Model([model_color.input, model_canny.input], model_merge)
@@ -172,7 +154,7 @@ def main():
 
     model = train(model, [X_train_color, X_train_canny], y_train_color, [X_test_color, X_test_canny], y_test_color)
 
-    evaluate(model, [X_test_color, X_test_canny], [y_test_color, y_test_canny])
+    evaluate(model, [X_test_color, X_test_canny], y_test_color)
 
     save(model, filename)
 

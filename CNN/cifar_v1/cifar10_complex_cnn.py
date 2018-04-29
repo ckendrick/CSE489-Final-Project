@@ -19,7 +19,7 @@ from keras.utils import np_utils
 from keras import backend as K
 
 # Compile model
-epochs = 50
+epochs = 200
 lrate = 0.01
 
 # Simply orders the dataset for 'channels (3) first'
