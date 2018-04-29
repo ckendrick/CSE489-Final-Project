@@ -5,6 +5,9 @@
 *.ndjson
 *.bin
 
+# Ignore any .pyc files that are not important
+LVQ-sean/*.pyc
+
 # Ignore any large output folders
 out/
 out-*/
@@ -13,3 +16,5 @@ weights/
 weights-*/
 exports/
 dataset/
+LVQ-sean/images/
+LVQ-sean/im_out/
