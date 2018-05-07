@@ -12,6 +12,7 @@ LVQ-sean/*.pyc
 out/
 out-*/
 logs/
+logs_*/
 weights/
 weights-*/
 exports/
