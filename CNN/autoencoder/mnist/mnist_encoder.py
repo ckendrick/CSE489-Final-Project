@@ -24,10 +24,9 @@ e_max = 100
 for e in range(0, e_max, e_step):
     print('--- training on {}/{} epochs'.format(e, e_max))
 
+    model.plot_output(x_test, "{}_{}e.png".format(model.model_name, e))
+
     model.train(x_train, x_test, epoch_step=e_step)
 
-    model.plot_output(x_test, "{}_{}e_before.png".format(model.model_name, e))
-
-    model.plot_output(x_test, "{}_{}e_after.png".format(model.model_name, e))
 
 print('--- done')
