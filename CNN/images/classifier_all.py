@@ -5,8 +5,11 @@
 import os
 import os.path as path
 
-import numpy
-from keras.datasets import cifar10
+from scipy import ndimage
+import numpy as np
+from sklearn.utils import shuffle
+from sklearn.model_selection import train_test_split
+
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.layers import Dropout
@@ -19,16 +22,24 @@ from keras.utils import np_utils
 from keras import backend as K
 from keras.callbacks import TensorBoard
 
+# Compile model
+epochs = 75
+
+# List of parameters to try:
+tests = [(0.01, 0.90), (0.02, 0.90), (0.005, 0.90), (0.01, 0.90), (0.01, 0.85), (0.01, 0.80),
+         (0.01, 0.75), (0.01, 0.95)]
+
 # Simply orders the dataset for 'channels (3) first'
 K.set_image_dim_ordering('th')
 
 # fix random seed for reproducibility
 seed = 7
-numpy.random.seed(seed)
+np.random.seed(seed)
 
 
 def load_data():
-    (X_train, y_train), (X_test, y_test) = cifar10.load_data()
+
+    (X_train, y_train), (X_test, y_test) = import_images('../../Datasets/Images/export')
 
     # normalize inputs from 0-255 to 0.0-1.0
     X_train = X_train.astype('float32')
@@ -42,10 +53,42 @@ def load_data():
 
     return X_train, y_train, X_test, y_test
 
+def import_images(root_path):
+    X = []
+    y = []
+    k = 0
+
+    for root, dirs, files in os.walk(root_path, topdown=True):
+
+        if dirs is not None:
+            for dir in dirs:
+
+                for root, dirs, files in os.walk('{}/{}'.format(root_path, dir)):
+                    for i, f in enumerate(files):
+                        img = ndimage.imread('{}/{}/{}'.format(root_path, dir, f))
+
+                        if img.shape == (200, 200, 3):
+                            X.append(img.reshape(3, 200, 200))
+                            y.append(k)
+                            # print('{}: {}/{}'.format(k, i, files.__len__()))
+
+                k += 1
+
+    print(np.array(X).shape)
+    print(np.array(y).shape)
+
+    X, y = shuffle(X, y, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.33, random_state = 42)
+
+    return (np.array(X_train), np.array(y_train)), (np.array(X_test), np.array(y_test))
+
+
+
+
 
 def build_model(num_classes):
     model = Sequential()
-    model.add(Conv2D(32, (3, 3), input_shape=(3, 32, 32), activation='relu', padding='same'))
+    model.add(Conv2D(32, (3, 3), input_shape=(3, 200, 200), activation='relu', padding='same'))
     model.add(Dropout(0.2))
     model.add(Conv2D(32, (3, 3), activation='relu', padding='same'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -67,7 +110,7 @@ def build_model(num_classes):
 
     return model
 
-
+# tensorboard --logdir=sgd_best:logs_sgdIM,rms_best:logs_rmsIM,adam_best:logs_adamIM --port 6006
 def tensorboard(log_dir):
     # starting tensorboard: tensorboard --logdir=run1:logs1/,run2:logs2/ --port 6006
     if not path.exists(log_dir):
@@ -75,7 +118,7 @@ def tensorboard(log_dir):
     print('--- enabling TensorBoard')
     return TensorBoard(log_dir=log_dir, histogram_freq=0, write_graph=True, write_images=True)
 
-# tensorboard --logdirun0:logs_sgd10_0,run1:logs_sgd10_1,run2:logs_sgd10_2,run3:logs_sgd10_3,run4:logs_sgd10_4,run5:logs_sgd10_5,run6:logs_sgd10_6,run7:logs_sgd10_7 --port 6006
+
 def train_sgd(model, X_train, y_train, X_test, y_test, log_dir, tests, epochs):
 
     lrate = tests[0]
@@ -89,11 +132,10 @@ def train_sgd(model, X_train, y_train, X_test, y_test, log_dir, tests, epochs):
         callbacks = []
     else:
         callbacks = [tensorboard(log_dir)]
-    model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=epochs, batch_size=64, callbacks=callbacks, verbose=False)
+    model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=epochs, batch_size=64, callbacks=callbacks, verbose=True)
 
     return model
 
-# tensorboard --logdi1e-4:logs_rms10_0,2e-4:logs_rms10_1,3e-4:logs_rms10_2,5e-5:logs_rms10_3,1e-5:logs_rms10_4 --port 6006
 def train_rms(model, X_train, y_train, X_test, y_test, log_dir, tests, epochs):
 
     rms = RMSprop(lr=tests)
@@ -108,7 +150,6 @@ def train_rms(model, X_train, y_train, X_test, y_test, log_dir, tests, epochs):
 
     return model
 
-# tensorboard --logdi1e-4:logs_adam10_0,2e-4:logs_adam10_1,3e-4:logs_adam10_2,5e-5:logs_adam10_3,1e-5:logs_adam10_4 --port 6006
 def train_adam(model, X_train, y_train, X_test, y_test, log_dir, tests, epochs):
 
     adam = Adam(lr=tests)
@@ -154,99 +195,44 @@ def main():
     ####################################################################################################################
     ## SGD
 
-    # Compile model
-    epochs = 75
-
-    # List of parameters to try:
-    tests = [(0.01, 0.90), (0.02, 0.90), (0.005, 0.90), (0.01, 0.90), (0.01, 0.85), (0.01, 0.80),
-             (0.01, 0.75), (0.01, 0.95)]
-
-    for i in range(0, tests.__len__()):
-        print('--- testing: {} lrate and {} momentum'.format(tests[i][0], tests[i][1]))
-
-        model = build_model(y_test.shape[1])
-
-        model = train_sgd(model, X_train, y_train, X_test, y_test, None, tests[i], epochs)
-
-        filename = 'out/sdg10_{}.h5'.format(i)
-        save(model, filename)
+    # epochs = 75
+    #
+    # model = build_model(y_test.shape[1])
+    #
+    # model = train_sgd(model, X_train, y_train, X_test, y_test, 'logs_sgdIM', (0.01, 0.95), epochs)
+    #
+    # evaluate(model, X_test, y_test)
+    #
+    # filename = 'out/sgdIM.h5'
+    # save(model, filename)
 
     ####################################################################################################################
     ## RMS
 
-    # List of parameters to try:
-    tests = [(0.0001), (0.0002), (0.0003), (0.00005), (0.00001)]
+    epochs = 400
 
-    epochs = 75
-    for i in range(0, 3):
-        print('--- testing: {} lrate'.format(tests[i]))
+    model = build_model(y_test.shape[1])
 
-        model = build_model(y_test.shape[1])
+    model = train_rms(model, X_train, y_train, X_test, y_test, 'logs_rmsIM', 0.00001, epochs)
 
-        model = train_rms(model, X_train, y_train, X_test, y_test, None, tests[i], epochs)
+    evaluate(model, X_test, y_test)
 
-        evaluate(model, X_test, y_test)
-
-        filename = 'out/rms10_{}.h5'.format(i)
-        save(model, filename)
-
-    epochs = 150
-    for i in range(3, 4):
-        print('--- testing: {} lrate'.format(tests[i]))
-
-        model = build_model(y_test.shape[1])
-
-        model = train_rms(model, X_train, y_train, X_test, y_test, None, tests[i], epochs)
-
-        evaluate(model, X_test, y_test)
-
-        filename = 'out/rms10_{}.h5'.format(i)
-        save(model, filename)
-
-    epochs = 300
-    for i in range(4, 5):
-        print('--- testing: {} lrate'.format(tests[i]))
-
-        model = build_model(y_test.shape[1])
-
-        model = train_rms(model, X_train, y_train, X_test, y_test, None, tests[i], epochs)
-
-        evaluate(model, X_test, y_test)
-
-        filename = 'out/rms10_{}.h5'.format(i)
-        save(model, filename)
+    filename = 'out/rmsIM.h5'
+    save(model, filename)
 
     ####################################################################################################################
     ## Adam
 
-    # List of parameters to try:
-    tests = [(0.0001), (0.0002), (0.0003), (0.00005)]
+    epochs = 150
 
-    epochs = 75
-    for i in range(0, 3):
-        print('--- testing: {} lrate'.format(tests[i]))
+    model = build_model(y_test.shape[1])
 
-        model = build_model(y_test.shape[1])
+    model = train_adam(model, X_train, y_train, X_test, y_test, 'logs_adamIM', 0.0003, epochs)
 
-        model = train_adam(model, X_train, y_train, X_test, y_test, None, tests[i], epochs)
+    evaluate(model, X_test, y_test)
 
-        evaluate(model, X_test, y_test)
-
-        filename = 'out/adam10_{}.h5'.format(i)
-        save(model, filename)
-
-    epochs = 121
-    for i in range(3, 4):
-        print('--- testing: {} lrate'.format(tests[i]))
-
-        model = build_model(y_test.shape[1])
-
-        model = train_adam(model, X_train, y_train, X_test, y_test, None, tests[i], epochs)
-
-        evaluate(model, X_test, y_test)
-
-        filename = 'out/adam10_{}.h5'.format(i)
-        save(model, filename)
+    filename = 'out/adamIM.h5'
+    save(model, filename)
 
 
 if __name__ == '__main__':

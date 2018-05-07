@@ -75,7 +75,7 @@ def tensorboard(log_dir):
     print('--- enabling TensorBoard')
     return TensorBoard(log_dir=log_dir, histogram_freq=0, write_graph=True, write_images=True)
 
-# tensorboard --logdirun0:logs_sgd10_0,run1:logs_sgd10_1,run2:logs_sgd10_2,run3:logs_sgd10_3,run4:logs_sgd10_4,run5:logs_sgd10_5,run6:logs_sgd10_6,run7:logs_sgd10_7 --port 6006
+# tensorboard --logdir=run0:logs_sgd10_0un1:logs_sgd10_1,run2:logs_sgd10_2,run3:logs_sgd10_3,run4:logs_sgd10_4,run5:logs_sgd10_5,run6:logs_sgd10_6,run7:logs_sgd10_7 --port 6006
 def train_sgd(model, X_train, y_train, X_test, y_test, log_dir, tests, epochs):
 
     lrate = tests[0]
@@ -93,7 +93,7 @@ def train_sgd(model, X_train, y_train, X_test, y_test, log_dir, tests, epochs):
 
     return model
 
-# tensorboard --logdi1e-4:logs_rms10_0,2e-4:logs_rms10_1,3e-4:logs_rms10_2,5e-5:logs_rms10_3,1e-5:logs_rms10_4 --port 6006
+# tensorboard --logdir=1e-4:logs_rms10_0,2e-4:logs_rms10_1,3e-4:logs_rms10_2,5e-5:logs_rms10_3,1e-5:logs_rms10_4 --port 6006
 def train_rms(model, X_train, y_train, X_test, y_test, log_dir, tests, epochs):
 
     rms = RMSprop(lr=tests)
@@ -108,7 +108,7 @@ def train_rms(model, X_train, y_train, X_test, y_test, log_dir, tests, epochs):
 
     return model
 
-# tensorboard --logdi1e-4:logs_adam10_0,2e-4:logs_adam10_1,3e-4:logs_adam10_2,5e-5:logs_adam10_3,1e-5:logs_adam10_4 --port 6006
+# tensorboard --logdir=1e-4:logs_adam10_0,2e-4:logs_adam10_1,3e-4:logs_adam10_2,5e-5:logs_adam10_3,1e-5:logs_adam10_4 --port 6006
 def train_adam(model, X_train, y_train, X_test, y_test, log_dir, tests, epochs):
 
     adam = Adam(lr=tests)

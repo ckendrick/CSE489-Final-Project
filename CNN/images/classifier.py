@@ -69,7 +69,7 @@ def import_images(root_path):
                         img = ndimage.imread('{}/{}/{}'.format(root_path, dir, f))
 
                         if img.shape == (200, 200, 3):
-                            X.append(img)
+                            X.append(img.reshape(3, 200, 200))
                             y.append(k)
                             # print('{}: {}/{}'.format(k, i, files.__len__()))
 
@@ -89,13 +89,13 @@ def import_images(root_path):
 
 def build_model(num_classes):
     model = Sequential()
-    model.add(Conv2D(32, (25, 25), input_shape=(200, 200, 3), activation='relu', padding='same'))
+    model.add(Conv2D(32, (3, 3), input_shape=(3, 200, 200), activation='relu', padding='same'))
     model.add(Dropout(0.2))
-    model.add(Conv2D(32, (16, 16), activation='relu', padding='same'))
+    model.add(Conv2D(32, (3, 3), activation='relu', padding='same'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Conv2D(64, (8, 8), activation='relu', padding='same'))
+    model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
     model.add(Dropout(0.2))
-    model.add(Conv2D(64, (4, 4), activation='relu', padding='same'))
+    model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Conv2D(128, (3, 3), activation='relu', padding='same'))
     model.add(Dropout(0.2))
