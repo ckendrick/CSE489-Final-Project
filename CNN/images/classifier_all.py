@@ -146,7 +146,7 @@ def train_rms(model, X_train, y_train, X_test, y_test, log_dir, tests, epochs):
         callbacks = []
     else:
         callbacks = [tensorboard(log_dir)]
-    model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=epochs, batch_size=64, callbacks=callbacks, verbose=False)
+    model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=epochs, batch_size=64, callbacks=callbacks, verbose=True)
 
     return model
 
@@ -160,7 +160,7 @@ def train_adam(model, X_train, y_train, X_test, y_test, log_dir, tests, epochs):
         callbacks = []
     else:
         callbacks = [tensorboard(log_dir)]
-    model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=epochs, batch_size=64, callbacks=callbacks, verbose=False)
+    model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=epochs, batch_size=64, callbacks=callbacks, verbose=True)
 
     return model
 
@@ -195,16 +195,16 @@ def main():
     ####################################################################################################################
     ## SGD
 
-    # epochs = 75
-    #
-    # model = build_model(y_test.shape[1])
-    #
-    # model = train_sgd(model, X_train, y_train, X_test, y_test, 'logs_sgdIM', (0.01, 0.95), epochs)
-    #
-    # evaluate(model, X_test, y_test)
-    #
-    # filename = 'out/sgdIM.h5'
-    # save(model, filename)
+    epochs = 75
+
+    model = build_model(y_test.shape[1])
+
+    model = train_sgd(model, X_train, y_train, X_test, y_test, 'logs_sgdIM', (0.01, 0.95), epochs)
+
+    evaluate(model, X_test, y_test)
+
+    filename = 'out/sgdIM.h5'
+    save(model, filename)
 
     ####################################################################################################################
     ## RMS
