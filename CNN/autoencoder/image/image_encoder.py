@@ -2,7 +2,7 @@
 ## Build the model:
 
 from autoencoder_model import AutoEncoder_model
-model = AutoEncoder_model(model_name="image_encoder")
+model = AutoEncoder_model()
 
 ########################################################################################################################
 ## Build the dataset:
@@ -47,7 +47,7 @@ def import_images(root_path):
                         img = ndimage.imread('{}/{}/{}'.format(root_path, dir, f))
 
                         if img.shape == (200, 200, 3):
-                            X.append(img.reshape(3, 200, 200))
+                            X.append(img)
                             y.append(k)
                             # print('{}: {}/{}'.format(k, i, files.__len__()))
 
@@ -67,15 +67,15 @@ X_train, _, X_test, _ = load_data()
 ########################################################################################################################
 ## Train and sleep the model:
 
-e_step = 10
-e_max = 100
+e_step = 100
+e_max = 1000
+e_offset = 200
 for e in range(0, e_max, e_step):
     print('--- training on {}/{} epochs'.format(e, e_max))
 
     model.train(X_train, X_test, epoch_step=e_step)
 
-    model.plot_output(X_test, "{}_{}e_before.png".format(model.model_name, e))
+    model.plot_output(X_train, "train_{}e.png".format(e+e_step+e_offset))
+    model.plot_output(X_test, "test_{}e.png".format(e+e_step+e_offset))
 
-    model.plot_output(X_test, "{}_{}e_after.png".format(model.model_name, e))
-
-print('--- done')
+    model.save()
