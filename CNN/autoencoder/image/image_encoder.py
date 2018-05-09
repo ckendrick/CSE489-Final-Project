@@ -69,7 +69,7 @@ X_train, _, X_test, _ = load_data()
 
 e_step = 100
 e_max = 1000
-e_offset = 1200
+e_offset = 1602
 for e in range(0, e_max, e_step):
     print('--- training on {}/{} epochs'.format(e, e_max))
 

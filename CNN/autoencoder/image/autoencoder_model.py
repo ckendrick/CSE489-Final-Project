@@ -44,7 +44,7 @@ class AutoEncoder_model():
         self.autoencoder.summary()
 
         # this model maps an input to its encoded representation
-        self.encoder = self.load(Model(input_img, encoded), self.enc_weights)
+        self.encoder = Model(input_img, encoded)
 
     def checkpoint(self):
         if not path.exists('weights'):
